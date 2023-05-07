@@ -1,17 +1,16 @@
 import { pgTable, serial, text, timestamp, varchar, boolean} from 'drizzle-orm/pg-core';
-import { NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import { InferModel } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { InferModel, eq } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres'
 
    const db = drizzle(sql)
 
  const tasks = pgTable('tasks', {
-    ID: serial('ID').primaryKey(),
-    TASKNAME: text('TASKNAME'),
-    CREATEDAT: timestamp('CREATEDAT').defaultNow().notNull(),
-    ISDONE: boolean('false').notNull()
+    id: serial('id').primaryKey(),
+    taskname: text('taskname'),
+    createdat: timestamp('createdat').defaultNow().notNull(),
+    isdone: boolean('isdone').notNull()
   });
 
    type Task = InferModel<typeof tasks>;
@@ -27,12 +26,30 @@ export async function POST(request : NextRequest){
     
     const req = await request.json();
     const newTask: NewTask = {
-        TASKNAME: req.taskName,
-        ISDONE: req.isDone,
+        taskname: req.taskName,
+        isdone: req.isDone,
+        createdat: new Date()
       };
 
     console.log(db);
     const insertedUsers = await db.insert(tasks).values(newTask).returning();
 
     return NextResponse.json(insertedUsers);
+}
+export async function PUT(request : NextRequest){
+    
+  const req = await request.json();
+
+  if(req.id){
+
+    const updateResult = await db.update(tasks)
+  .set({ isdone: req.isDone})
+  .where(eq(tasks.id, req.id))  
+  .returning({taskname:tasks.taskname,
+              isdone:tasks.isdone
+            })
+
+  return NextResponse.json(updateResult);
+  }
+ 
 }
