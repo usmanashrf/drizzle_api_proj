@@ -19,7 +19,7 @@
 	);
 
 	
-3.0 Connect your project with vercel DB you can connect it through two ways
+### 3.0 Connect your project with vercel DB you can connect it through two ways
 
 3.1.1 - First deploy you project on vercel by running below command
 
